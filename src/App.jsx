@@ -1,50 +1,43 @@
-import { useEffect, useState } from "react";
-import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
-import Home from './Home.jsx'
-import ItemDetailPage from "./ItemDetailPage.jsx";
-
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import InputCreate from './components/InputCreate';
 
 const App = () => {
-  const [data, setData] = useState(null)
-  const urlApi = 'http://localhost:3000'
+  const [tasks, setTasks] = useState([]);
 
-const fetchData = async () => {
-  try {
-    const response = await fetch(urlApi)
-    const resData = await response.json()
-    setData(resData)
-  } catch (error) {
-    console.log(error)
-  }
-}
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const response = await fetch('http://localhost:3000/tasks');
+      const data = await response.json();
+      setTasks(data);
+    };
 
-useEffect(() => {
-  fetchData()
-}, [])
+    fetchTasks();
+  }, []);
+
+  const handleTaskCreated = (newTask) => {
+    setTasks((prevTasks) => [...prevTasks, newTask]);
+  };
 
   return (
     <Router>
-      <div>
-        <nav>
-          <Link to="/">Inicio</Link>
-     
-        </nav>
-        {data === null 
-        ? (<div>cargando...</div>) 
-        : 
-          <Routes>
-            <Route path="/" element={<Home data={data} />} />
-           
-            {data.map(item => (
-              <Route key={item._id} path={`/${item._id}`} element={<ItemDetailPage item={item}/>} />
-            ))
-            }
-          </Routes>
-        }
-        
-      </div>
+      <Switch>
+        <Route exact path="/">
+          <div>
+            <h1>Task List</h1>
+            <ul>
+              {tasks.map((task) => (
+                <li key={task.id}>{task.title}</li>
+              ))}
+            </ul>
+          </div>
+        </Route>
+        <Route path="/create">
+          <InputCreate onTaskCreated={handleTaskCreated} />
+        </Route>
+      </Switch>
     </Router>
-  )
+  );
 };
 
 export default App;
